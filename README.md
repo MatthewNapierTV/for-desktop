@@ -1,4 +1,14 @@
 <div align="center">
+  <h1>
+    <a href="https://stt.gg/eq3mgQeY">💬 Join my Stoat</a>
+  </h1>
+  <h3>
+    <a href="https://www.youtube.com/@matthewnapiertv">📺 MatthewNapierTV on YouTube</a>
+  </h3>
+</div>
+<br/>
+
+<div align="center">
 <h1>
   Stoat for Desktop
   
@@ -20,6 +30,53 @@ Application for Windows, macOS, and Linux.
 </a>
 
 - All downloads and instructions for Stoat can be found on our [Website](https://stoat.chat/download).
+
+## Unified shell — local and live servers together
+
+This branch turns the app into a unified shell: instead of being locked to
+one Stoat server, every instance you register (the official live one, your
+locally hosted ones, anyone else's) lives in a single window, **all
+connected at the same time**.
+
+> Stoat is not federated: each instance has its own accounts, so you log in
+> to each one separately. Logins are stored per-server and never interfere.
+
+### The instance rail
+
+A slim rail on the left edge of the window lists your instances, grouped
+under **Live** and **Local** headings with a separator between them —
+this is the "server separator" for backends. Each entry shows the
+instance's initials, colour-coded (blue ring = live, green ring = local).
+
+- **Click** an instance to bring it into view. The others keep running in
+  the background, so notifications from every instance arrive in real time.
+- **Right-click** an instance for **Reload** and **Remove Instance**.
+- The highlighted (orange) entry is the one currently shown.
+
+### Adding things
+
+Clicking the green **+** at the bottom of the rail opens **"Add a Server"**,
+which first asks *where* the server should go:
+
+1. Pick an instance from the **Live** / **Local** groups (local entries are
+   numbered — local 1, local 2, … — when you have several), and you're
+   taken there to use that instance's own **+** button to create or join
+   the chat server.
+2. Or choose **"Register a new instance (a literal server)"** to add a
+   whole new backend: display name, web app URL, and whether it's Live or
+   Local (auto-detected from the URL by default — localhost and LAN
+   addresses count as Local).
+
+### Notes
+
+- Instance configuration lives in `instances.json` under the app's
+  user-data directory (`%APPDATA%\stoat-desktop` on Windows).
+- `--force-server <url>` still works: the forced server shows up in the
+  rail as an extra entry for that session.
+- Auto-update is disabled on this branch so official releases don't replace
+  the shell. See [FORK.md](FORK.md) for the upstream-merge workflow.
+- Every instance stays loaded, so memory use grows with the number of
+  registered instances.
 
 ## Development Guide
 

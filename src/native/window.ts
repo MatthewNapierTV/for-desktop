@@ -9,22 +9,17 @@ import {
   ipcMain,
   nativeImage,
   session,
+  webContents,
 } from "electron";
 
 import windowIconAsset from "../../assets/desktop/icon.png?asset";
 
 import { config } from "./config";
 import { updateTrayMenu } from "./tray";
+import { initUnifiedShell } from "./unifiedShell";
 
 // global reference to main window
 export let mainWindow: BrowserWindow;
-
-// currently in-use build
-export const BUILD_URL = new URL(
-  app.commandLine.hasSwitch("force-server")
-    ? app.commandLine.getSwitchValue("force-server")
-    : /*MAIN_WINDOW_VITE_DEV_SERVER_URL ??*/ "https://stoat.chat/app",
-);
 
 // internal window state
 let shouldQuit = false;
@@ -50,7 +45,9 @@ export function createMainWindow() {
     width: 1280,
     height: 720,
     backgroundColor: "#191919",
-    frame: isMacOS ? true : !config.customFrame,
+    // the unified shell hosts multiple instance views, so the window
+    // always uses the native frame; views are told customFrame=false
+    frame: true,
     titleBarStyle: isMacOS ? "hidden" : "default",
     trafficLightPosition: isMacOS ? { x: 8, y: 8 } : undefined,
     icon: windowIcon,
@@ -88,8 +85,8 @@ export function createMainWindow() {
     mainWindow.maximize();
   }
 
-  // load the entrypoint
-  mainWindow.loadURL(BUILD_URL.toString());
+  // attach the unified shell (instance rail + one view per instance)
+  initUnifiedShell(mainWindow);
 
   // minimise window to tray
   mainWindow.on("close", (event) => {
@@ -221,7 +218,10 @@ export function createMainWindow() {
               }
             },
           );
-          mainWindow.webContents.send(
+          // send to the view that asked, not the (empty) window contents
+          (
+            webContents.fromFrame(request.frame) ?? mainWindow.webContents
+          ).send(
             "screenPicker",
             sources.map((source, idx) => {
               const image = source.appIcon;
