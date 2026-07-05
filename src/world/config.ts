@@ -1,6 +1,8 @@
 import { contextBridge, ipcRenderer } from "electron";
 
-let config: DesktopConfig;
+// fetch the initial config synchronously so it is available before
+// the web app's first render (avoids a stray titlebar in shell views)
+let config: DesktopConfig = ipcRenderer.sendSync("config:getSync");
 
 ipcRenderer.on("config", (_, data) => (config = data));
 

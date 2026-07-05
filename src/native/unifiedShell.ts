@@ -268,6 +268,23 @@ function isFromRail(sender: Electron.WebContents) {
   return railView && sender.id === railView.webContents.id;
 }
 
+function isInstanceView(sender: Electron.WebContents) {
+  for (const view of instanceViews.values()) {
+    if (view.webContents.id === sender.id) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// synchronous config for preloads, so the web app never renders before
+// it knows the frame style; instance views always get customFrame=false
+ipcMain.on("config:getSync", (event) => {
+  event.returnValue = isInstanceView(event.sender)
+    ? { ...config.snapshot(), customFrame: false }
+    : config.snapshot();
+});
+
 ipcMain.on("shell:switch", (event, url: string) => {
   if (isFromRail(event.sender)) {
     switchToInstance(url);
