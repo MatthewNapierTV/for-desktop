@@ -29,4 +29,16 @@ contextBridge.exposeInMainWorld("stoatShell", {
   dialogCancel: () => ipcRenderer.send("dialog:cancel"),
   onDialogError: (callback: (message: string) => void) =>
     ipcRenderer.on("dialog:error", (_, message) => callback(message)),
+
+  // "edit instance" dialog
+  onEditorState: (callback: (instance: unknown) => void) =>
+    ipcRenderer.on("editor:state", (_, instance) => callback(instance)),
+  onEditorIcon: (callback: (dataUrl: string) => void) =>
+    ipcRenderer.on("editor:icon", (_, dataUrl) => callback(dataUrl)),
+  onEditorError: (callback: (message: string) => void) =>
+    ipcRenderer.on("editor:error", (_, message) => callback(message)),
+  editorPickIcon: () => ipcRenderer.send("editor:pickIcon"),
+  editorSubmit: (name: string, color: string | null, icon: string | null) =>
+    ipcRenderer.send("editor:submit", name, color, icon),
+  editorCancel: () => ipcRenderer.send("editor:cancel"),
 });

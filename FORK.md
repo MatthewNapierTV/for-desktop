@@ -40,6 +40,7 @@ One `BrowserWindow` hosts several `WebContentsView`s:
 | `src/native/unifiedShell.ts` | The shell: rail view, per-instance views, layout, switching, per-view zoom/reload/spellcheck, right-click menu, rail IPC. |
 | `src/native/instanceChooser.ts` | "Add a Server" popup: pick a Live/Local instance first, or jump to registering a new one. |
 | `src/native/instanceDialog.ts` | "Register Instance" dialog (name, URL, Live/Local/Auto). |
+| `src/native/instanceEditor.ts` | "Edit Instance" dialog: rename, colour (presets + picker), custom icon (native file dialog, resized to 128px and stored as a data URL in `instances.json`). |
 | `src/world/unifiedShell.ts` | Preload bridge (`window.stoatShell`) for the rail, chooser, and dialog. All IPC channels are sender-checked in the main process, so instance web apps cannot invoke them. |
 
 Adding a new shell feature should follow the same pattern: a new fork-owned

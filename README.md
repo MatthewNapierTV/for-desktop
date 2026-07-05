@@ -50,7 +50,12 @@ instance's initials, colour-coded (blue ring = live, green ring = local).
 
 - **Click** an instance to bring it into view. The others keep running in
   the background, so notifications from every instance arrive in real time.
-- **Right-click** an instance for **Reload** and **Remove Instance**.
+- **Right-click** an instance for **Edit Instance…**, **Reload** and
+  **Remove Instance**.
+- **Edit Instance…** lets you rename an instance, give it a colour (presets
+  or a full colour picker), and set a custom icon from an image file —
+  just like decorating a Stoat server. Icons are scaled down and stored in
+  your instance configuration.
 - The highlighted (orange) entry is the one currently shown.
 - The **chevron at the bottom** of the rail collapses it to a thin strip
   (and back); the choice is remembered across restarts.

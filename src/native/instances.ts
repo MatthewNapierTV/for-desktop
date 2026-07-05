@@ -15,6 +15,10 @@ export type Instance = {
   name: string;
   url: string;
   kind: InstanceKind;
+  /** custom accent colour for the rail entry (CSS colour) */
+  color?: string;
+  /** custom rail icon (data URL) */
+  icon?: string;
 };
 
 export const DEFAULT_INSTANCE: Instance = {
@@ -36,6 +40,12 @@ const schema = {
           type: "string",
         },
         kind: {
+          type: "string",
+        },
+        color: {
+          type: "string",
+        },
+        icon: {
           type: "string",
         },
       },
@@ -135,6 +145,8 @@ export function getInstances(): Instance[] {
         instance.kind === "live" || instance.kind === "local"
           ? instance.kind
           : inferKind(url),
+      color: typeof instance.color === "string" ? instance.color : undefined,
+      icon: typeof instance.icon === "string" ? instance.icon : undefined,
     });
   }
 
@@ -201,6 +213,21 @@ export function addInstance(
 
   typedStore.set("instances", [...instances, instance]);
   return instance;
+}
+
+/**
+ * Update an instance's appearance/details in place
+ */
+export function updateInstance(
+  url: string,
+  patch: Partial<Pick<Instance, "name" | "color" | "icon" | "kind">>,
+) {
+  typedStore.set(
+    "instances",
+    getInstances().map((instance) =>
+      instance.url === url ? { ...instance, ...patch } : instance,
+    ),
+  );
 }
 
 /**

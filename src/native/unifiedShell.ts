@@ -10,6 +10,7 @@ import {
 
 import { config } from "./config";
 import { openInstanceChooser } from "./instanceChooser";
+import { openInstanceEditor } from "./instanceEditor";
 import {
   Instance,
   getActiveInstanceUrl,
@@ -336,6 +337,11 @@ ipcMain.on("shell:context", (event, url: string) => {
 
   Menu.buildFromTemplate([
     {
+      label: "Edit Instance…",
+      enabled: isConfigured,
+      click: () => openInstanceEditor(url),
+    },
+    {
       label: "Reload",
       click: () => instanceViews.get(url)?.webContents.reload(),
     },
@@ -400,11 +406,15 @@ const railHtml = `<!DOCTYPE html>
         transition: border-radius .15s, background .15s;
         flex: none;
       }
-      .instance:hover, .action:hover { border-radius: 30%; background: #3f4147; }
-      .instance.active { border-radius: 30%; background: #ff5733; color: #fff; }
-      .instance.local { box-shadow: inset 0 0 0 1.5px #3ba55d55; }
-      .instance.live { box-shadow: inset 0 0 0 1.5px #5865f255; }
-      .instance.active.local, .instance.active.live { box-shadow: none; }
+      .instance:hover, .action:hover { border-radius: 30%; }
+      .instance:hover:not(.hasicon):not(.colored), .action:hover { background: #3f4147; }
+      .instance.active { border-radius: 30%; outline: 2px solid #dbdee1; outline-offset: 2px; }
+      .instance.active:not(.hasicon):not(.colored) { background: #ff5733; color: #fff; }
+      .instance.hasicon { background-size: cover; background-position: center; color: transparent; }
+      .instance.local:not(.active) { box-shadow: inset 0 0 0 1.5px #3ba55d55; }
+      .instance.live:not(.active) { box-shadow: inset 0 0 0 1.5px #5865f255; }
+      .instance.hasicon.local:not(.active) { box-shadow: 0 0 0 1.5px #3ba55d55; }
+      .instance.hasicon.live:not(.active) { box-shadow: 0 0 0 1.5px #5865f255; }
       .action { color: #3ba55d; font-size: 20px; background: #313338; }
       .action:hover { background: #3ba55d; color: #fff; border-radius: 30%; }
       .spacer { flex: 1; }
@@ -489,6 +499,14 @@ const railHtml = `<!DOCTYPE html>
             }
             button.title = instance.name + " (" + label + ")";
             button.textContent = initials(instance.name);
+            if (instance.icon) {
+              button.classList.add("hasicon");
+              button.style.backgroundImage = "url(" + instance.icon + ")";
+            } else if (instance.color) {
+              button.classList.add("colored");
+              button.style.background = instance.color;
+              button.style.color = "#fff";
+            }
             button.addEventListener("click", () =>
               window.stoatShell.switch(instance.url),
             );
