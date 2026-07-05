@@ -14,17 +14,11 @@ import {
 import windowIconAsset from "../../assets/desktop/icon.png?asset";
 
 import { config } from "./config";
+import { getActiveInstanceUrl } from "./instances";
 import { updateTrayMenu } from "./tray";
 
 // global reference to main window
 export let mainWindow: BrowserWindow;
-
-// currently in-use build
-export const BUILD_URL = new URL(
-  app.commandLine.hasSwitch("force-server")
-    ? app.commandLine.getSwitchValue("force-server")
-    : /*MAIN_WINDOW_VITE_DEV_SERVER_URL ??*/ "https://stoat.chat/app",
-);
 
 // internal window state
 let shouldQuit = false;
@@ -89,7 +83,8 @@ export function createMainWindow() {
   }
 
   // load the entrypoint
-  mainWindow.loadURL(BUILD_URL.toString());
+  // (was hardcoded at build time, now resolved from the configured instances)
+  mainWindow.loadURL(getActiveInstanceUrl().toString());
 
   // minimise window to tray
   mainWindow.on("close", (event) => {
@@ -263,7 +258,9 @@ export function createMainWindow() {
  */
 export function quitApp() {
   shouldQuit = true;
-  mainWindow.close();
+  // quit the app rather than closing the main window,
+  // so extra instance windows are closed as well
+  app.quit();
 }
 
 // Ensure global app quit works properly

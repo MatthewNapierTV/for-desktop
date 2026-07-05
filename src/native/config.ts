@@ -74,8 +74,8 @@ const store = new Store({
  * Shim for `electron-store` because typings are broken
  */
 class Config {
-  sync() {
-    mainWindow.webContents.send("config", {
+  snapshot() {
+    return {
       firstLaunch: this.firstLaunch,
       customFrame: this.customFrame,
       minimiseToTray: this.minimiseToTray,
@@ -84,7 +84,11 @@ class Config {
       hardwareAcceleration: this.hardwareAcceleration,
       discordRpc: this.discordRpc,
       windowState: this.windowState,
-    });
+    };
+  }
+
+  sync() {
+    mainWindow.webContents.send("config", this.snapshot());
   }
 
   get firstLaunch() {
