@@ -85,6 +85,7 @@ export function initUnifiedShell(win: BrowserWindow) {
     createInstanceView(instance.url);
   }
 
+  raiseActiveView();
   hostWindow.on("resize", layout);
   hostWindow.on("maximize", layout);
   hostWindow.on("unmaximize", layout);
@@ -177,10 +178,20 @@ function createInstanceView(url: string): WebContentsView {
 
   instanceViews.set(key, view);
   hostWindow.contentView.addChildView(view);
-  view.setVisible(key === activeUrl());
   view.webContents.loadURL(key);
 
   return view;
+}
+
+/**
+ * Keep the active view on top of the (1×1) background views
+ */
+function raiseActiveView() {
+  const view = instanceViews.get(activeUrl());
+  if (view) {
+    // re-adding an existing child moves it to the top of the stack
+    hostWindow.contentView.addChildView(view);
+  }
 }
 
 /**
@@ -190,11 +201,7 @@ export function switchToInstance(url: string) {
   const key = parseInstanceUrl(url)?.toString() ?? url;
   setActiveInstance(key);
   createInstanceView(key);
-
-  for (const [viewUrl, view] of instanceViews) {
-    view.setVisible(viewUrl === key);
-  }
-
+  raiseActiveView();
   layout();
   pushShellState();
   hostWindow.show();
@@ -238,17 +245,25 @@ export function onInstanceAdded(instance: Instance) {
 function layout() {
   const [width, height] = hostWindow.getContentSize();
   const rail = railWidth();
+  const active = activeUrl();
 
   railView.setBounds({ x: 0, y: 0, width: rail, height });
 
-  const bounds = {
-    x: rail,
-    y: 0,
-    width: Math.max(width - rail, 0),
-    height,
-  };
-  for (const view of instanceViews.values()) {
-    view.setBounds(bounds);
+  for (const [viewUrl, view] of instanceViews) {
+    if (viewUrl === active) {
+      view.setBounds({
+        x: rail,
+        y: 0,
+        width: Math.max(width - rail, 0),
+        height,
+      });
+    } else {
+      // background views stay 1×1 px behind the active view rather than
+      // hidden: their pages remain "visible" to Chromium, so websockets,
+      // timers and exit animations (e.g. the connecting strip) keep
+      // running instead of freezing mid-state
+      view.setBounds({ x: rail, y: 0, width: 1, height: 1 });
+    }
   }
 }
 
