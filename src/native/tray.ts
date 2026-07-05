@@ -4,6 +4,7 @@ import trayIconAsset from "../../assets/desktop/icon.png?asset";
 import macOsTrayIconAsset from "../../assets/desktop/iconTemplate.png?asset";
 import { version } from "../../package.json";
 
+import { buildInstanceMenuItem } from "./instanceMenu";
 import { mainWindow, quitApp } from "./window";
 
 // internal tray state
@@ -38,9 +39,15 @@ export function initTray() {
 }
 
 export function updateTrayMenu() {
+  // may be called before the tray exists (or after it is destroyed on quit)
+  if (!tray) {
+    return;
+  }
+
   tray.setContextMenu(
     Menu.buildFromTemplate([
       { label: "Stoat for Desktop", type: "normal", enabled: false },
+      buildInstanceMenuItem(),
       {
         label: "Version",
         type: "submenu",

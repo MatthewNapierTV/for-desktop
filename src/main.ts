@@ -1,13 +1,13 @@
-import { IUpdateInfo, updateElectronApp } from "update-electron-app";
-
-import { BrowserWindow, Notification, app, shell } from "electron";
+import { BrowserWindow, app, shell } from "electron";
 import started from "electron-squirrel-startup";
 
 import { autoLaunch } from "./native/autoLaunch";
 import { config } from "./native/config";
 import { initDiscordRpc } from "./native/discordRpc";
 import { initTray } from "./native/tray";
-import { BUILD_URL, createMainWindow, mainWindow } from "./native/window";
+import { restoreInstanceWindows } from "./native/instanceWindows";
+import { isKnownInstanceUrl } from "./native/instances";
+import { createMainWindow, mainWindow } from "./native/window";
 
 // Squirrel-specific logic
 // create/remove shortcuts on Windows when installing / uninstalling
@@ -24,19 +24,9 @@ if (!config.hardwareAcceleration) {
 // ensure only one copy of the application can run
 const acquiredLock = app.requestSingleInstanceLock();
 
-const onNotifyUser = (_info: IUpdateInfo) => {
-  const notification = new Notification({
-    title: "Update Available",
-    body: "Restart the app to install the update.",
-    silent: true,
-  });
-
-  notification.show();
-};
-
 if (acquiredLock) {
-  // start auto update logic
-  updateElectronApp({ onNotifyUser });
+  // auto-update is intentionally disabled in this fork: official releases
+  // would replace the build and remove the instance switcher
 
   // create and configure the app when electron is ready
   app.on("ready", () => {
@@ -53,6 +43,10 @@ if (acquiredLock) {
 
     initTray();
     initDiscordRpc();
+
+    // reopen any extra instance windows from the previous session
+    // (after the tray exists, since opening windows refreshes its menu)
+    restoreInstanceWindows();
 
     // Windows specific fix for notifications
     if (process.platform === "win32") {
@@ -87,9 +81,9 @@ if (acquiredLock) {
 
   // ensure URLs launch in external context
   app.on("web-contents-created", (_, contents) => {
-    // prevent navigation out of build URL origin
+    // prevent navigation out of configured instance origins
     contents.on("will-navigate", (event, navigationUrl) => {
-      if (new URL(navigationUrl).origin !== BUILD_URL.origin) {
+      if (!isKnownInstanceUrl(navigationUrl)) {
         event.preventDefault();
       }
     });
