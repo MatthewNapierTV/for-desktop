@@ -54,10 +54,11 @@ an upstream file.
 | `src/native/config.ts` | `sync()` split into `snapshot()` + `sync()` so each instance view can be sent the config. |
 | `src/main.ts` | Navigation guard checks `isKnownInstanceUrl()` instead of a single build-time origin; auto-updater removed (an official release would replace the fork). |
 | `src/preload.ts` | One import: `./world/unifiedShell`. |
+| `src/world/config.ts` | Initial config is fetched synchronously (`config:getSync`, answered by `unifiedShell.ts`) so the web app never renders before knowing the frame style; instance views always receive `customFrame: false`. |
 | `package.json` | Added `description` (the Squirrel maker requires it); version bumped per fork release. |
 
 Untouched: `tray.ts` (Show/Hide/Quit as upstream), `badges.ts`,
-`discordRpc.ts`, `autoLaunch.ts`, `world/config.ts`, `world/window.ts`.
+`discordRpc.ts`, `autoLaunch.ts`, `world/window.ts`.
 
 ## Updating from upstream
 
