@@ -109,6 +109,9 @@ function createInstanceView(url: string): WebContentsView {
       contextIsolation: true,
       nodeIntegration: false,
       spellcheck: true,
+      // hidden instances must stay fully connected (websocket heartbeats
+      // and notifications), so never throttle them in the background
+      backgroundThrottling: false,
     },
   });
   view.setBackgroundColor("#191919");
