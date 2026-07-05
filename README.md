@@ -1,4 +1,14 @@
 <div align="center">
+  <h1>
+    <a href="https://stt.gg/eq3mgQeY">💬 Join my Stoat</a>
+  </h1>
+  <h3>
+    <a href="https://www.youtube.com/@matthewnapiertv">📺 MatthewNapierTV on YouTube</a>
+  </h3>
+</div>
+<br/>
+
+<div align="center">
 <h1>
   Stoat for Desktop
   
