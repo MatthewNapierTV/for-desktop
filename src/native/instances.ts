@@ -44,6 +44,9 @@ const schema = {
   activeInstanceUrl: {
     type: "string",
   } as JSONSchema.String,
+  railCollapsed: {
+    type: "boolean",
+  } as JSONSchema.Boolean,
 };
 
 const store = new Store({
@@ -52,14 +55,24 @@ const store = new Store({
   defaults: {
     instances: [DEFAULT_INSTANCE],
     activeInstanceUrl: DEFAULT_INSTANCE.url,
+    railCollapsed: false,
   },
 });
 
 const typedStore = store as never as {
   get(k: "instances"): Partial<Instance>[];
   get(k: "activeInstanceUrl"): string;
+  get(k: "railCollapsed"): boolean;
   set(k: string, value: unknown): void;
 };
+
+export function getRailCollapsed(): boolean {
+  return typedStore.get("railCollapsed") ?? false;
+}
+
+export function setRailCollapsed(value: boolean) {
+  typedStore.set("railCollapsed", value);
+}
 
 /**
  * Validate and normalise an instance URL, returns undefined if invalid

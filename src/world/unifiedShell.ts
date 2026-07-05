@@ -16,6 +16,7 @@ contextBridge.exposeInMainWorld("stoatShell", {
   switch: (url: string) => ipcRenderer.send("shell:switch", url),
   context: (url: string) => ipcRenderer.send("shell:context", url),
   addServer: () => ipcRenderer.send("shell:addServer"),
+  toggleRail: () => ipcRenderer.send("shell:toggleRail"),
 
   // "add a server" chooser
   chooserPick: (url: string) => ipcRenderer.send("chooser:pick", url),

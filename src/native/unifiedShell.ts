@@ -14,14 +14,21 @@ import {
   Instance,
   getActiveInstanceUrl,
   getInstances,
+  getRailCollapsed,
   inferKind,
   parseInstanceUrl,
   removeInstance,
   setActiveInstance,
+  setRailCollapsed,
 } from "./instances";
 
-/** Width of the instance rail on the left of the window */
-const RAIL_WIDTH = 72;
+/** Rail sizing: match the width feel of Stoat's own server list */
+const RAIL_EXPANDED = 56;
+const RAIL_COLLAPSED = 24;
+
+function railWidth() {
+  return getRailCollapsed() ? RAIL_COLLAPSED : RAIL_EXPANDED;
+}
 
 // shell state
 let hostWindow: BrowserWindow;
@@ -67,7 +74,7 @@ export function initUnifiedShell(win: BrowserWindow) {
       nodeIntegration: false,
     },
   });
-  railView.setBackgroundColor("#111111");
+  railView.setBackgroundColor("#1e1f22");
   hostWindow.contentView.addChildView(railView);
   railView.webContents.on("did-finish-load", pushShellState);
   railView.webContents.loadURL(
@@ -227,13 +234,14 @@ export function onInstanceAdded(instance: Instance) {
  */
 function layout() {
   const [width, height] = hostWindow.getContentSize();
+  const rail = railWidth();
 
-  railView.setBounds({ x: 0, y: 0, width: RAIL_WIDTH, height });
+  railView.setBounds({ x: 0, y: 0, width: rail, height });
 
   const bounds = {
-    x: RAIL_WIDTH,
+    x: rail,
     y: 0,
-    width: Math.max(width - RAIL_WIDTH, 0),
+    width: Math.max(width - rail, 0),
     height,
   };
   for (const view of instanceViews.values()) {
@@ -248,6 +256,7 @@ export function pushShellState() {
   railView?.webContents.send("shell:state", {
     instances: displayedInstances(),
     activeUrl: activeUrl(),
+    collapsed: getRailCollapsed(),
   });
 }
 
@@ -268,6 +277,14 @@ ipcMain.on("shell:switch", (event, url: string) => {
 ipcMain.on("shell:addServer", (event) => {
   if (isFromRail(event.sender)) {
     openInstanceChooser();
+  }
+});
+
+ipcMain.on("shell:toggleRail", (event) => {
+  if (isFromRail(event.sender)) {
+    setRailCollapsed(!getRailCollapsed());
+    layout();
+    pushShellState();
   }
 });
 
@@ -307,71 +324,86 @@ const railHtml = `<!DOCTYPE html>
       * { box-sizing: border-box; margin: 0; padding: 0; }
       body {
         font-family: "Segoe UI", system-ui, sans-serif;
-        background: #111111;
+        background: #1e1f22;
         height: 100vh;
         overflow: hidden;
         user-select: none;
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 10px 0;
-        gap: 8px;
+        padding: 8px 0 6px;
+        gap: 6px;
       }
       .group-label {
-        font-size: 9px;
+        font-size: 8px;
         font-weight: 700;
         letter-spacing: 1px;
-        color: #666;
+        color: #565861;
         text-transform: uppercase;
+        flex: none;
       }
       .separator {
-        width: 32px;
-        border-top: 2px solid #333;
-        margin: 4px 0;
+        width: 24px;
+        border-top: 1px solid #35373c;
+        margin: 2px 0;
+        flex: none;
       }
       .instance, .action {
-        width: 48px;
-        height: 48px;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
         border: none;
         cursor: pointer;
-        font-size: 18px;
+        font-size: 14px;
         font-weight: 600;
-        color: #f0f0f0;
-        background: #2b2b2b;
+        color: #dbdee1;
+        background: #313338;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: border-radius .15s, background .15s;
-        position: relative;
         flex: none;
       }
-      .instance:hover, .action:hover { border-radius: 35%; background: #3a3a3a; }
-      .instance.active { border-radius: 35%; background: #ff5733; }
-      .instance.local { border: 2px solid #3ba55d; }
-      .instance.live { border: 2px solid #5865f2; }
-      .instance.active.local, .instance.active.live { border-color: transparent; }
-      .action { background: #222; color: #3ba55d; font-size: 26px; }
-      .action:hover { background: #3ba55d; color: #fff; }
+      .instance:hover, .action:hover { border-radius: 30%; background: #3f4147; }
+      .instance.active { border-radius: 30%; background: #ff5733; color: #fff; }
+      .instance.local { box-shadow: inset 0 0 0 1.5px #3ba55d55; }
+      .instance.live { box-shadow: inset 0 0 0 1.5px #5865f255; }
+      .instance.active.local, .instance.active.live { box-shadow: none; }
+      .action { color: #3ba55d; font-size: 20px; background: #313338; }
+      .action:hover { background: #3ba55d; color: #fff; border-radius: 30%; }
       .spacer { flex: 1; }
+      #toggle {
+        width: 100%;
+        height: 24px;
+        border: none;
+        background: transparent;
+        color: #565861;
+        font-size: 12px;
+        cursor: pointer;
+        flex: none;
+      }
+      #toggle:hover { color: #dbdee1; }
       #list {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
         overflow-y: auto;
         overflow-x: hidden;
         width: 100%;
         scrollbar-width: none;
       }
+      body.collapsed #list { display: none; }
+      body.collapsed { padding: 4px 0; }
     </style>
   </head>
   <body>
     <div id="list"></div>
     <div class="spacer"></div>
-    <button class="action" id="add" title="Add a server…">+</button>
+    <button id="toggle" title="Collapse/expand instances">◀</button>
     <script>
       const list = document.getElementById("list");
+      const toggle = document.getElementById("toggle");
 
       function initials(name) {
         return name
@@ -383,6 +415,12 @@ const railHtml = `<!DOCTYPE html>
       }
 
       function render(state) {
+        document.body.classList.toggle("collapsed", !!state.collapsed);
+        toggle.textContent = state.collapsed ? "▶" : "◀";
+        toggle.title = state.collapsed
+          ? "Expand instances"
+          : "Collapse instances";
+
         list.textContent = "";
 
         const groups = [
@@ -425,12 +463,19 @@ const railHtml = `<!DOCTYPE html>
             list.appendChild(button);
           }
         }
+
+        // the + lives directly under the last (local) instance
+        const add = document.createElement("button");
+        add.className = "action";
+        add.id = "add";
+        add.title = "Add a server…";
+        add.textContent = "+";
+        add.addEventListener("click", () => window.stoatShell.addServer());
+        list.appendChild(add);
       }
 
       window.stoatShell.onState(render);
-      document.getElementById("add").addEventListener("click", () =>
-        window.stoatShell.addServer(),
-      );
+      toggle.addEventListener("click", () => window.stoatShell.toggleRail());
     </script>
   </body>
 </html>`;

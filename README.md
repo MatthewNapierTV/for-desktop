@@ -52,6 +52,9 @@ instance's initials, colour-coded (blue ring = live, green ring = local).
   the background, so notifications from every instance arrive in real time.
 - **Right-click** an instance for **Reload** and **Remove Instance**.
 - The highlighted (orange) entry is the one currently shown.
+- The **chevron at the bottom** of the rail collapses it to a thin strip
+  (and back); the choice is remembered across restarts.
+- The green **+** sits directly under the last instance in the list.
 
 ### Adding things
 
