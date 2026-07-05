@@ -183,8 +183,14 @@ function createInstanceView(url: string): WebContentsView {
   return view;
 }
 
+
 /**
- * Keep the active view on top of the (1×1) background views
+ * Show the given instance's view (all others keep running hidden)
+ */
+/**
+ * Bring the active instance's view to the top of the stack.
+ * All views share identical full-size bounds; raising is a pure
+ * compositor reorder, so switching never resizes or repaints.
  */
 function raiseActiveView() {
   const view = instanceViews.get(activeUrl());
@@ -194,9 +200,6 @@ function raiseActiveView() {
   }
 }
 
-/**
- * Show the given instance's view (all others keep running hidden)
- */
 export function switchToInstance(url: string) {
   const key = parseInstanceUrl(url)?.toString() ?? url;
   setActiveInstance(key);
@@ -245,25 +248,23 @@ export function onInstanceAdded(instance: Instance) {
 function layout() {
   const [width, height] = hostWindow.getContentSize();
   const rail = railWidth();
-  const active = activeUrl();
 
   railView.setBounds({ x: 0, y: 0, width: rail, height });
 
-  for (const [viewUrl, view] of instanceViews) {
-    if (viewUrl === active) {
-      view.setBounds({
-        x: rail,
-        y: 0,
-        width: Math.max(width - rail, 0),
-        height,
-      });
-    } else {
-      // background views stay 1×1 px behind the active view rather than
-      // hidden: their pages remain "visible" to Chromium, so websockets,
-      // timers and exit animations (e.g. the connecting strip) keep
-      // running instead of freezing mid-state
-      view.setBounds({ x: rail, y: 0, width: 1, height: 1 });
-    }
+  // every view gets identical full-size bounds and they simply stack:
+  // covered views remain within the window so Chromium keeps their pages
+  // "visible" (websockets, timers and exit animations keep running), and
+  // switching instances is a z-order change with no resize — the source
+  // of white flashes. Offscreen or hidden placement does NOT work: both
+  // mark the page hidden and freeze the web app's animations mid-state.
+  const bounds = {
+    x: rail,
+    y: 0,
+    width: Math.max(width - rail, 0),
+    height,
+  };
+  for (const view of instanceViews.values()) {
+    view.setBounds(bounds);
   }
 }
 
