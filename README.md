@@ -9,6 +9,12 @@
 <br/>
 
 <div align="center">
+  <img src="unified-shell.png" alt="Stoat for Desktop unified shell — live and local instances in one window with a customisable rail" width="820" />
+  <p><i>The unified shell: live and locally hosted instances side by side, each with its own name, colour, and icon.</i></p>
+</div>
+<br/>
+
+<div align="center">
 <h1>
   Stoat for Desktop
   
@@ -46,7 +52,8 @@ connected at the same time**.
 A slim rail on the left edge of the window lists your instances, grouped
 under **Live** and **Local** headings with a separator between them —
 this is the "server separator" for backends. Each entry shows the
-instance's initials, colour-coded (blue ring = live, green ring = local).
+instance's icon (or its initials), with a thin blue ring for live and
+green ring for local.
 
 - **Click** an instance to bring it into view. The others keep running in
   the background, so notifications from every instance arrive in real time.
@@ -56,7 +63,8 @@ instance's initials, colour-coded (blue ring = live, green ring = local).
   or a full colour picker), and set a custom icon from an image file —
   just like decorating a Stoat server. Icons are scaled down and stored in
   your instance configuration.
-- The highlighted (orange) entry is the one currently shown.
+- The instance currently in view is marked with a rounded-square shape and
+  a light outline.
 - The **chevron at the bottom** of the rail collapses it to a thin strip
   (and back); the choice is remembered across restarts.
 - The green **+** sits directly under the last instance in the list.
